@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RPA Process Improvement Drag & Drop Game</title>
+<style>
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Segoe UI,Arial,sans-serif;
+    background:linear-gradient(135deg,#eef5ff,#f8fbff);
+    color:#17233c;
+  }
+  .wrap{max-width:1200px;margin:auto;padding:24px}
+  h1{text-align:center;margin:5px 0 8px;font-size:32px}
+  .subtitle{text-align:center;margin:0 auto 20px;color:#52627a}
+  .scenario{
+    background:white;border-radius:16px;padding:18px 22px;
+    box-shadow:0 5px 18px rgba(30,60,100,.10);margin-bottom:20px
+  }
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+  .step{background:#edf3ff;border:1px solid #cddcff;border-radius:10px;padding:9px 12px;font-weight:600}
+  .arrow{font-size:20px;color:#7183a4}
+  .game-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .zone{
+    min-height:260px;background:white;border:3px dashed #b7c4d9;
+    border-radius:16px;padding:14px;transition:.2s
+  }
+  .zone.dragover{transform:scale(1.02);background:#f0f7ff;border-color:#3b82f6}
+  .zone h2{margin:2px 0 4px;font-size:21px}
+  .hint{font-size:13px;color:#687891;margin-bottom:10px}
+  .lean{border-top:7px solid #f59e0b}.six{border-top:7px solid #8b5cf6}.rpa{border-top:7px solid #10b981}
+  .cards{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0
+  }
+  .card{
+    background:#fff;border:1px solid #c9d3e3;border-radius:12px;padding:13px;
+    cursor:grab;box-shadow:0 3px 8px rgba(30,60,100,.08);font-weight:600;
+    user-select:none
+  }
+  .card:active{cursor:grabbing}
+  .card.correct{border-color:#16a34a;background:#ecfdf3}
+  .card.wrong{border-color:#dc2626;background:#fef2f2}
+  .controls{text-align:center;margin:18px 0}
+  button{
+    border:0;border-radius:10px;padding:11px 18px;margin:4px;
+    background:#2563eb;color:white;font-weight:700;cursor:pointer
+  }
+  button.secondary{background:#64748b}
+  #score{font-size:20px;font-weight:800;margin:8px}
+  .sequence{
+    background:white;border-radius:16px;padding:18px 22px;margin-top:20px;
+    box-shadow:0 5px 18px rgba(30,60,100,.10)
+  }
+  .sequence h2{margin-top:0}
+  .seq-zone{
+    min-height:90px;border:3px dashed #b7c4d9;border-radius:12px;padding:10px;
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center
+  }
+  .seq-card{background:#eafaf4;border:1px solid #9de1c4;border-radius:10px;padding:10px 12px;font-weight:700;cursor:grab}
+  .message{text-align:center;font-size:18px;font-weight:700;min-height:28px;margin-top:10px}
+  .footer{text-align:center;color:#718096;font-size:13px;margin-top:18px}
+  @media(max-width:800px){.game-grid{grid-template-columns:1fr}.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎯 RPA Process Improvement Challenge</h1>
+  <p class="subtitle">Drag each card to the correct methodology: <b>Lean</b>, <b>Six Sigma</b>, or <b>RPA</b>.</p>
+
+  <div class="scenario">
+    <b>Current employee reimbursement process:</b>
+    <div class="flow">
+      <span class="step">Employee submits form</span><span class="arrow">→</span>
+      <span class="step">Employee sends email</span><span class="arrow">→</span>
+      <span class="step">Manager checks</span><span class="arrow">→</span>
+      <span class="step">Finance re-enters data</span><span class="arrow">→</span>
+      <span class="step">Finance verifies</span><span class="arrow">→</span>
+      <span class="step">Payment</span>
+    </div>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="game-grid">
+    <div class="zone lean" data-zone="lean">
+      <h2>🟠 LEAN</h2>
+      <div class="hint">Remove waste / non-value-added activities.</div>
+      <div class="droparea"></div>
+    </div>
+    <div class="zone six" data-zone="six">
+      <h2>🟣 SIX SIGMA</h2>
+      <div class="hint">Find and reduce errors and variation.</div>
+      <div class="droparea"></div>
+    </div>
+    <div class="zone rpa" data-zone="rpa">
+      <h2>🟢 RPA</h2>
+      <div class="hint">Automate repetitive, rule-based digital work.</div>
+      <div class="droparea"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div id="score">Score: 0 / 11</div>
+    <button onclick="checkAll()">Check Answers</button>
+    <button class="secondary" onclick="resetGame()">Reset</button>
+  </div>
+  <div class="message" id="message"></div>
+
+  <div class="sequence">
+    <h2>🚀 Bonus Round: Build the Improved RPA Process</h2>
+    <p>Drag the green process cards into the box in the correct order.</p>
+    <div id="seqCards" class="cards" style="margin-top:10px">
+      <div class="seq-card" draggable="true" data-step="3">ERP</div>
+      <div class="seq-card" draggable="true" data-step="1">Form</div>
+      <div class="seq-card" draggable="true" data-step="5">Payment notification</div>
+      <div class="seq-card" draggable="true" data-step="2">Validation</div>
+      <div class="seq-card" draggable="true" data-step="4">Approval</div>
+    </div>
+    <div class="seq-zone" id="seqZone">Drop the cards here</div>
+    <div class="controls">
+      <button onclick="checkSequence()">Check Improved Process</button>
+      <button class="secondary" onclick="resetSequence()">Reset Sequence</button>
+    </div>
+    <div class="message" id="seqMessage"></div>
+  </div>
+
+  <div class="footer">Teaching idea: Ask students to explain WHY each card belongs to Lean, Six Sigma or RPA after completing the game.</div>
+</div>
+
+<script>
+let dragged=null;
+const cardData = [
+  ["Duplicate data entry","lean"],
+  ["Unnecessary emails","lean"],
+  ["Unnecessary approvals","lean"],
+  ["Incorrect employee details","six"],
+  ["Incorrect expense categories","six"],
+  ["Payment errors","six"],
+  ["Processing variation","six"],
+  ["Automate form validation","rpa"],
+  ["Automated approval workflow","rpa"],
+  ["Update ERP automatically","rpa"],
+  ["Send payment notification automatically","rpa"]
+];
+
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+function buildCards(){
+  const container=document.getElementById('cards');
+  container.innerHTML='';
+  shuffle([...cardData]).forEach(([text,answer])=>{
+    const c=document.createElement('div');
+    c.className='card';
+    c.draggable=true;
+    c.dataset.answer=answer;
+    c.textContent=text;
+    c.addEventListener('dragstart',()=>dragged=c);
+    container.appendChild(c);
+  });
+}
+
+
+document.querySelectorAll('.zone').forEach(z=>{
+  z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('dragover')});
+  z.addEventListener('dragleave',()=>z.classList.remove('dragover'));
+  z.addEventListener('drop',e=>{
+    e.preventDefault();z.classList.remove('dragover');
+    if(dragged){z.querySelector('.droparea').appendChild(dragged);dragged.classList.remove('wrong','correct')}
+  });
+});
+
+function checkAll(){
+  let score=0;
+  document.querySelectorAll('.zone').forEach(z=>{
+    z.querySelectorAll('.card').forEach(c=>{
+      if(c.dataset.answer===z.dataset.zone){score++;c.classList.add('correct');c.classList.remove('wrong')}
+      else{c.classList.add('wrong');c.classList.remove('correct')}
+    });
+  });
+  document.getElementById('score').textContent=`Score: ${score} / 11`;
+  document.getElementById('message').textContent=
+    score===11 ? '🎉 Perfect! You understand Lean → Six Sigma → RPA.' :
+    '💡 Review the red cards and try again.';
+}
+
+function resetGame(){
+  document.querySelectorAll('.zone .card').forEach(c=>c.remove());
+  buildCards();
+  document.getElementById('score').textContent='Score: 0 / 11';
+  document.getElementById('message').textContent='';
+}
+
+function buildSequenceCards(){
+  const box=document.getElementById('seqCards');
+  const items=[...box.querySelectorAll('.seq-card')];
+  shuffle(items).forEach(c=>box.appendChild(c));
+  items.forEach(c=>c.addEventListener('dragstart',()=>dragged=c));
+}
+buildSequenceCards();
+const seqZone=document.getElementById('seqZone');
+seqZone.addEventListener('dragover',e=>e.preventDefault());
+seqZone.addEventListener('drop',e=>{
+  e.preventDefault();
+  if(dragged && dragged.classList.contains('seq-card')) seqZone.appendChild(dragged);
+});
+function checkSequence(){
+  const items=[...seqZone.querySelectorAll('.seq-card')];
+  const order=items.map(x=>Number(x.dataset.step)).join(',');
+  document.getElementById('seqMessage').textContent=
+    order==='1,2,4,3,5' ? '🏆 Correct! Form → Validation → Approval → ERP → Payment notification' :
+    '❌ Not quite. Think: input → check → approve → update system → notify.';
+}
+function resetSequence(){
+  const box=document.getElementById('seqCards');
+  [...seqZone.querySelectorAll('.seq-card')].forEach(c=>box.appendChild(c));
+  document.getElementById('seqMessage').textContent='';
+}
+buildCards();
+</script>
+</body>
+</html>
